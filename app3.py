@@ -3,10 +3,10 @@ import pdb
 import json
 from bson.json_util import dumps
 from util import JSONEncoder
-# from flask_restful import *
 from flask_restful import Resource, Api
 
 # 1 - pymongo is a MongoAPI
+from flask_pymongo import PyMongo
 from pymongo import MongoClient
 app = Flask(__name__)
 app.config['DEBUG'] = True
@@ -17,42 +17,41 @@ app.db = mongo.test
 
 
 class User(Resource):
-
     def post(self):
-
-        # data = request.get_json()
-        # if not data:
-        #     data = {"response": "ERROR"}
-        #     return jsonify(data)
-        # else:
         a_user = request.json
         users_collection = app.db.users
         result = users_collection.insert_one(a_user)
         # pdb.set_trace()
-        # 4 if insert was succesful, return 200 and the a_course back to requester
-        # 4 Covert result to json, its initially a python dict
-        # json_results = json.dumps(result)
-        # json_results = JSONEncoder().encode(a_user)
-        # 5 Return the json as part of the response body
-        # param1 data, param2 result, param3 headers
         return (a_user, 200, None)
-
 
     def get(self):
         # pdb.set_trace()
         users_collection = app.db.users
+        name = request.args.get('name')
 
-        name = request.args.get("name")
-        user = users_collection.find_one({"name": name})
-
-        # 4 Covert result to json, its initially a python dict
-        # json_result = JSONEncoder().encode(user)
+        user = users_collection.find_one({'name': name})
         # pdb.set_trace()
-        return (a_user, 200, None)
-
+        return (user, 200, None)
 
     def put(self):
-        pass
+        a_user = request.json
+        name = request.args.get('name')
+        users_collection = app.db.users
+        result = users_collection.find_one_and_replace(
+            {'name': name},
+            a_user)
+        return (a_user, 200, None)
+
+    def patch(self):
+        a_user_fav_foods = request.json
+        name = request.args.get('name')
+        users_collection = app.db.users
+        result = users_collection.find_one_and_update(
+            {'name': name},
+            {'$set': {'fav_foods': a_user_fav_foods} }
+        )
+
+        return (result, 200, None)
 
 api = Api(app)
 api.add_resource(User, '/users')
