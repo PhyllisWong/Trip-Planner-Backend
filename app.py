@@ -62,6 +62,7 @@ def my_page_route():
 
 @app.route('/pets')
 def fav_pets():
+    pdb.set_trace()
     pets = [
         {
             'name': 'Boba',

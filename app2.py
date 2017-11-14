@@ -38,6 +38,14 @@ def person_route():
     return (json_person, 200, None)
 
 
+@app.route('/pets', methods=['GET', 'POST'])
+def add_pets():
+    if request.method == 'POST':
+        pdb.set_trace()
+        json_pets = json.dumps(request.json)
+        return (json_pets, 201, None)
+
+
 @app.route('/courses', methods=['POST'])
 def post_courses():
     # 1 get body from post request
@@ -51,6 +59,7 @@ def post_courses():
     result = courses_collection.insert_one(
         a_course
     )
+    pdb.set_trace()
 
     # 4 if insert was succesful, return 200 and the a_course back to requester
     # 4 Covert result to json, its initially a python dict
