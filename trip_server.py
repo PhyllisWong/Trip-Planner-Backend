@@ -27,11 +27,10 @@ class User(Resource):
     def get(self):
         # pdb.set_trace()
         users_collection = app.db.users
-        name = request.args.get('name')
-        tripName = request.args.get('tripName')
+        email = request.args.get('email')
 
-        if request.args.get('name'):
-            user = users_collection.find_one({'name': name})
+        if request.args.get('email'):
+            user = users_collection.find_one({'email': email})
 
             return (user, 200, None)
         else:
@@ -41,12 +40,15 @@ class User(Resource):
 
     def put(self):
         a_user = request.json
-        name = request.args.get('name')
+        email = request.args.get('email')
         users_collection = app.db.users
-        result = users_collection.find_one_and_replace(
-            {'name': name},
-            a_user)
-        return (a_user, 200, None)
+        if request.args.get('email'):
+            user = users_collection.find_one_and_replace(
+                {'email': email}, email)
+            return (user, 200, None)
+        else:
+            return ({"BAD REQUEST": "nahhhhh"}, 404, None)
+
 
     # Future feature work on this later
     def patch(self):
