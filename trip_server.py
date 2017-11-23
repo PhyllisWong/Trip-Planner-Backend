@@ -82,6 +82,22 @@ class Trip(Resource):
         # pdb.set_trace()
         return (a_trip, 200, None)
 
+    def get(self):
+        # pdb.set_trace()
+        trips_collection = app.db.users
+        location = request.args.get('location')
+
+        if request.args.get('email'):
+            trip = users_collection.find_one({'location': location})
+
+            return (user, 200, None)
+        else:
+            return ({"BAD REQUEST": "nahhhhh"}, 404, None)
+        # pdb.set_trace()
+
+
+    ''' add get request to find trip '''
+    ''' add data model for trips  '''
 api = Api(app)
 api.add_resource(User, '/users')
 api.add_resource(Trip, '/trips')
