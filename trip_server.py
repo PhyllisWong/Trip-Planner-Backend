@@ -76,6 +76,7 @@ class User(Resource):
 
 class Trip(Resource):
     def post(self):
+        '''Create a new trip, store in the database.'''
         a_trip = request.json
         trips_collection = app.db.trips
         result = trips_collection.insert_one(a_trip)
@@ -83,6 +84,7 @@ class Trip(Resource):
         return (a_trip, 200, None)
 
     def get(self):
+        '''Return a trip from the database.'''
         # pdb.set_trace()
         trips_collection = app.db.users
         location = request.args.get('location')
@@ -95,6 +97,13 @@ class Trip(Resource):
             return ({"BAD REQUEST": "nahhhhh"}, 404, None)
         # pdb.set_trace()
 
+    def put(self):
+        '''Replace a trip with a new trip.'''
+        pass
+
+    def patch(self):
+        '''Replace a detail of a trip.'''
+        pass
 
     ''' add get request to find trip '''
     ''' add data model for trips  '''
