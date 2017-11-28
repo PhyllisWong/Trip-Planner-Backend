@@ -1,13 +1,16 @@
 from flask import Flask, jsonify, request, make_response
-import pdb
-import json
-from bson.json_util import dumps
-from util import JSONEncoder
 from flask_restful import Resource, Api
-
-# 1 - pymongo is a MongoAPI
 from flask_pymongo import PyMongo
 from pymongo import MongoClient
+from bson.json_util import dumps
+from util import JSONEncoder
+import json
+
+
+import bcrypt
+import pdb
+
+# 1 - pymongo is a MongoAPI
 app = Flask(__name__)
 app.config['DEBUG'] = True
 
@@ -21,7 +24,7 @@ class User(Resource):
         a_user = request.json
         users_collection = app.db.users
         result = users_collection.insert_one(a_user)
-        # pdb.set_trace()
+        pdb.set_trace()
         return (a_user, 200, None)
 
     def get(self):
@@ -85,14 +88,14 @@ class Trip(Resource):
 
     def get(self):
         '''Return a trip from the database.'''
-        # pdb.set_trace()
-        trips_collection = app.db.users
-        location = request.args.get('location')
+        pdb.set_trace()
+        trips_collection = app.db.trips
+        destination = request.args.get('destination')
 
-        if request.args.get('email'):
-            trip = users_collection.find_one({'location': location})
+        if request.args.get('destination'):
+            trip = trips_collection.find_one({'destination': destination})
 
-            return (user, 200, None)
+            return (trip, 200, None)
         else:
             return ({"BAD REQUEST": "nahhhhh"}, 404, None)
         # pdb.set_trace()
@@ -107,6 +110,8 @@ class Trip(Resource):
 
     ''' add get request to find trip '''
     ''' add data model for trips  '''
+
+
 api = Api(app)
 api.add_resource(User, '/users')
 api.add_resource(Trip, '/trips')
