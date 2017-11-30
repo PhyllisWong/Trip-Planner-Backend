@@ -27,3 +27,18 @@ JSON Web Tokens
 HTTP Basic Auth
 OAuth
 Authentication Tokens
+
+## Encode to http basic Auth Steps
+
+1. Combine the username and password with a single colon.
+1. (Character Encoding - UTF-8) - some users might be typing their email in another language
+1. encode to base64 from utf8 - changing to a standard format (not for security)
+1. Prepend the authorization method with the string "Basic"
+
+## General Account Creating
+
+
+## Decorators
+
+Wrap auth methods in a method - called decorator
+before a user can get their account - they have to hash the password
