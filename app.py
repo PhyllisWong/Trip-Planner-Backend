@@ -56,6 +56,8 @@ class User(Resource):
     def get(self): # THIS WORKS!!!!
         # pdb.set_trace()
         users_collection = app.db.users
+        if request.authorization is None:
+            return ('No authentication header given', 401, None)
         email = request.authorization.username
         password = request.authorization.password
 
