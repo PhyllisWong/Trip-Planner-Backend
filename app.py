@@ -20,7 +20,7 @@ app.db = mongo.trip_planner_pro
 app.bcrypt_rounds = 5
 
 class User(Resource):
-    def post(self): # This WORKS!!!!!!!
+    def post(self): # This WORKS with Paw!!!
         # Get data from the body of the http request
         new_user = request.json
         users_collection = app.db.users
