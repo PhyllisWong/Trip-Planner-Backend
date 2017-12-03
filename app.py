@@ -92,32 +92,20 @@ class User(Resource):
                 return (None, 404, None)
 
 
-    def get(self): # THIS WORKS!!!!
-        # pdb.set_trace()
+    @authentication_request
+    def get(self):
+        # import pdb pdb.set_trace()
+        # Get route to database
         users_collection = app.db.users
-        if request.authorization is None:
-            return ('No authentication header given', 401, None)
-        email = request.authorization.username
-        password = request.authorization.password
-
-        # encode the user input password to utf_8
-        encoded_password = password.encode('utf-8')
-
-        # find the user by the given email
-        check_saved_user = users_collection.find_one({'email': email})
-        # if user not in database, alert user to register not login
-        if check_saved_user is None:
-            return ('User does not exist', 404, None)
-
-        # find the password that matches the user entered password
-        get_saved_password = check_saved_user['password']
-        get_saved_password = get_saved_password.encode('utf-8')
-
-        if bcrypt.checkpw(encoded_password, get_saved_password) == True:
-            return ('Success', 200, None)
+        auth = request.authorization
+        # print("Current password:" + user_password)
+        encoded_password = user_password.encode('utf-8')
+        if auth.username is not None and auth.password is not None:
+            user_find = users_collection.find_one({'email': auth.email})
+            user_find.pop('password')
+            return(user_find, 200, None)
         else:
-            return ('Bad request', 400, None)
-
+            return(None, 401, None)
         # pdb.set_trace()
 
     def put(self):
