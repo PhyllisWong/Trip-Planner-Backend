@@ -21,7 +21,7 @@ app.bcrypt_rounds = 5
 # Authentication decorator
 def authentication_request(func):
     # Set unlimited arguments to return back
-    def wrapper(*args, *kwargs):
+    def wrapper(*args, **kwargs):
         auth = request.authorization
         # Gets the headers in the Authorization JSON
         auth_code = request.headers['authorization']
@@ -32,8 +32,8 @@ def authentication_request(func):
             found_user = user_collection.find_one({'email': email})
             if found_user is not None:
                 encoded_password = password.encode('utf-8')
-                if bcrypt.checkpw(encoded_password, found_user['password'])
-                return func(*args, *kwargs)
+                if bcrypt.checkpw(encoded_password, found_user['password']):
+                    return func(*args, **kwargs)
                 else:
                     return ({'error': 'email or password is not correct'}, 401, None)
             else:
