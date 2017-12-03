@@ -2,9 +2,12 @@ from flask import Flask, jsonify, request, make_response, g
 from flask_restful import Resource, Api
 from flask_pymongo import PyMongo
 from pymongo import MongoClient
+from bson.objectid import ObjectId
 from bson.json_util import dumps
+from bson import BSON
 from util import JSONEncoder
 import json
+import sys
 
 
 import bcrypt
@@ -26,7 +29,7 @@ def authentication_request(func):
         # Gets the headers in the Authorization JSON
         auth_code = request.headers['authorization']
         # import pdb; pdb.set_trace()
-        email, pawwrod = decode(auth_code)
+        email, password = decode(auth_code)
         if email is not None and password is not None:
             user_collection = app.db.users
             found_user = user_collection.find_one({'email': email})
@@ -45,8 +48,12 @@ def authentication_request(func):
 class User(Resource):
     def post(self): # This WORKS with Paw!!!
         # Get data from the body of the http request
-        new_user = request.json
+        json = request.json
         users_collection = app.db.users
+
+        #Getting password from client
+        password = json.get('password')
+        print(password)
 
         # save the value of the data in a variable
         email = new_user["email"]
@@ -63,18 +70,27 @@ class User(Resource):
         # if the email doesn't exist
         # store email and encode and hash password to be saved in database
         else:
+            # Encrypting password by using a hash function and salt
             encoded_password = password.encode('utf-8')
 
             # base64 encoding handled by the bcrypt library
             hashed = bcrypt.hashpw(
                 encoded_password, bcrypt.gensalt(app.bcrypt_rounds)
                 )
-            new_user['password'] = hashed.decode()
-            # insert user and user details to database
-            result = users_collection.insert_one(new_user)
+            json['password'] = hashed
+            print("This is the json " + str(json))
+            if 'username' in json and 'email' in json and 'password' in json:
+                # insert user and user details to database
+                user = users_collection.find_one({'email': json['email']})
+                if user is not None:
+                    # User exists
+                    return ({'error': 'User already exists'}, 409, None)
+                user_collection.insert_one(json)
+                json.pop('password')
+                return ('New user has been added.', 200, None)
+            else:
+                return (None, 404, None)
 
-        # pdb.set_trace()
-        return ('New user has been added.', 200, None)
 
     def get(self): # THIS WORKS!!!!
         # pdb.set_trace()
