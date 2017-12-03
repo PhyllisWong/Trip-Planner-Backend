@@ -8,7 +8,6 @@ import json
 
 
 import bcrypt
-import pdb
 
 # 1 - pymongo is a MongoAPI
 app = Flask(__name__)
@@ -18,6 +17,30 @@ app.config['DEBUG'] = True
 mongo = MongoClient('mongodb://phyllisWong:test@ds139909.mlab.com:39909/trip_planner_pro')
 app.db = mongo.trip_planner_pro
 app.bcrypt_rounds = 5
+
+# Authentication decorator
+def authentication_request(func):
+    # Set unlimited arguments to return back
+    def wrapper(*args, *kwargs):
+        auth = request.authorization
+        # Gets the headers in the Authorization JSON
+        auth_code = request.headers['authorization']
+        # import pdb; pdb.set_trace()
+        email, pawwrod = decode(auth_code)
+        if email is not None and password is not None:
+            user_collection = app.db.users
+            found_user = user_collection.find_one({'email': email})
+            if found_user is not None:
+                encoded_password = password.encode('utf-8')
+                if bcrypt.checkpw(encoded_password, found_user['password'])
+                return func(*args, *kwargs)
+                else:
+                    return ({'error': 'email or password is not correct'}, 401, None)
+            else:
+                return ({'error': 'email or password is not correct'}, 401, None)
+        else:
+            return ({'error': 'could not find user in the database'})
+    return wrapper
 
 class User(Resource):
     def post(self): # This WORKS with Paw!!!
