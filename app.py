@@ -56,8 +56,8 @@ class User(Resource):
         print(password)
 
         # save the value of the data in a variable
-        email = new_user["email"]
-        password = new_user["password"]
+        email = json["email"]
+        password = json["password"]
 
         # check if the user already exists in the database
         check_for_user = users_collection.find_one({'email': email})
@@ -77,11 +77,11 @@ class User(Resource):
             hashed = bcrypt.hashpw(
                 encoded_password, bcrypt.gensalt(app.bcrypt_rounds)
                 )
-            json['password'] = hashed
+            password = hashed
             print("This is the json " + str(json))
             if 'username' in json and 'email' in json and 'password' in json:
                 # insert user and user details to database
-                user = users_collection.find_one({'email': json['email']})
+                user = users_collection.find_one({'email': email})
                 if user is not None:
                     # User exists
                     return ({'error': 'User already exists'}, 409, None)
