@@ -1,16 +1,17 @@
-from flask import Flask, jsonify, request, make_response, g
+from flask import Flask, request, make_response
 from flask_restful import Resource, Api
-from flask_pymongo import PyMongo
 from pymongo import MongoClient
 from bson.objectid import ObjectId
-from bson.json_util import dumps
-from bson import BSON
-from util import JSONEncoder
-import json
-import sys
-
-
 import bcrypt
+import json
+from utils.mongo_json_encoder import JSONEncoder
+from flask import jsonify
+import pdb
+from bson import BSON
+from bson import json_util
+from basicauth import decode
+from bson.json_util import dumps
+import sys
 
 # 1 - pymongo is a MongoAPI
 app = Flask(__name__)
