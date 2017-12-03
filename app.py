@@ -31,8 +31,8 @@ def authentication_request(func):
         # import pdb; pdb.set_trace()
         email, password = decode(auth_code)
         if email is not None and password is not None:
-            user_collection = app.db.users
-            found_user = user_collection.find_one({'email': email})
+            users_collection = app.db.users
+            found_user = users_collection.find_one({'email': email})
             if found_user is not None:
                 encoded_password = password.encode('utf-8')
                 if bcrypt.checkpw(encoded_password, found_user['password']):
@@ -85,7 +85,7 @@ class User(Resource):
                 if user is not None:
                     # User exists
                     return ({'error': 'User already exists'}, 409, None)
-                user_collection.insert_one(json)
+                users_collection.insert_one(json)
                 json.pop('password')
                 return ('New user has been added.', 200, None)
             else:
