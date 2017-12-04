@@ -35,10 +35,10 @@ def validate_auth(user, password):
         # pdb.set_trace()
         return False
     else:
-        pdb.set_trace()
+        # pdb.set_trace()
         encoded_password = password.encode('utf-8')
         if bcrypt.hashpw(encoded_password, user['password']) == user['password']:
-            pdb.set_trace()
+            # pdb.set_trace()
             # g.setdefault('user', user)
             return True
         else:
@@ -50,7 +50,7 @@ def authenticated_request(func):
         auth = request.authorization
 
         if not auth or not validate_auth(auth.username, auth.password):
-            pdb.set_trace()
+            # pdb.set_trace()
             return ({'error': 'Basic Authorization Required'}, 401, None)
 
         return func(*args, **kwargs)
@@ -77,7 +77,7 @@ class User(Resource):
             encoded_password = password.encode('utf-8')
             hashed = bcrypt.hashpw(encoded_password, bcrypt.gensalt(app.bcrypt_rounds))
             # hashed = hashed.decode()
-            pdb.set_trace()
+            # pdb.set_trace()
 
             json_body['password'] = hashed
 
