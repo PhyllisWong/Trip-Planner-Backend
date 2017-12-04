@@ -20,10 +20,10 @@ app.config['DEBUG'] = True
 
 
 # Deployed database
-mongo = MongoClient('mongodb://phyllisWong:test@ds139909.mlab.com:39909/trip_planner_pro')
+# mongo = MongoClient('mongodb://phyllisWong:test@ds139909.mlab.com:39909/trip_planner_pro')
 
 # Local database
-# mongo = MongoClient('mongodb://localhost:27017/')
+mongo = MongoClient('mongodb://localhost:27017/')
 app.db = mongo.trip_planner_pro
 app.bcrypt_rounds = 5
 
@@ -94,41 +94,38 @@ class User(Resource):
         # pdb.set_trace()
         return ({'Success':'A user was found'}, 200, None)
 
+    @authenticated_request
     def put(self):
-        edit_user = request.json
-        email = request.args.get('email')
-        users_collection = app.db.users
-        if request.args.get('email'):
-            user = users_collection.find_one_and_replace(
+        username = request.authorization.username
+        json_body = request.json
+        password = json_body['password']
+        email = json_body['email']
+
+        check_for_user = self.users_collection.find_one({'email': email})
+        if check_for_user is not None:
+            check_for_user.find_one_and_replace(
                 {'email': email}, email)
-            return (user, 200, None)
+            return ({'success': 'user has been replaced'}, 200, None)
         else:
-            return ({"BAD REQUEST"}, 404, None)
+            return ({'error': 'BAD REQUEST'}, 404, None)
 
-
-    # Future feature work on this later
+    @authenticated_request
     def patch(self):
-        a_user = request.json
-        name = request.args.get('name')
-        users_collection = app.db.users
-        result = users_collection.find_one_and_update(
-            {'name': name},
-            {'$set': {'departDate': a_user_fav_foods} }
+        username = request.authorization.username
+        new_user = request.json['new_username']
+
+        user = self.users_collection.find_one_and_update(
+            {'user': username},
+            {'$set': {'user': new_user} },
+            return_document=ReturnDocument.AFTER
         )
+        return ({'succesful': 'user has been updated'}, 200, None)
 
-        return (result, 200, None)
-
-    # Deletes a user
+    @authenticated_request
     def delete(self):
-        a_user = request.json
-        name = request.args.get('name')
-        users_collection = app.db.users
-        result = users_collection.find_one_and_delete(
-            {'name': name}
-
-        )
-        return (a_user, 200, None)
-
+        username = request.authorization.username
+        self.users_collection.remove({'user': username})
+        return ({'success': 'user had been deleted'}, 200, None)
 
 class Trip(Resource):
     def post(self):
