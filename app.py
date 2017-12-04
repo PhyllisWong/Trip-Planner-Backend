@@ -101,8 +101,8 @@ class User(Resource):
         auth = request.authorization
         # print("Current password:" + user_password)
         encoded_password = user_password.encode('utf-8')
-        if auth.username is not None and auth.password is not None:
-            user_find = users_collection.find_one({'email': auth.username})
+        if auth.email is not None and auth.password is not None:
+            user_find = users_collection.find_one({'email': auth.email})
             user_find.pop('password')
             return(user_find, 200, None)
         else:
