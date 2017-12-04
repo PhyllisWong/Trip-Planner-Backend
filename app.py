@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request, make_response, g
 from flask_restful import Resource, Api
 from flask_pymongo import PyMongo
 from pymongo import MongoClient
-from basicauth import decode
+from basicauth import decode # does not work yet!!!!
 from bson.objectid import ObjectId
 from bson.json_util import dumps
 from bson import BSON
