@@ -7,6 +7,7 @@ from bson.objectid import ObjectId
 from bson.json_util import dumps
 from bson import BSON
 from util import JSONEncoder
+import pdb
 import json
 import sys
 
@@ -18,96 +19,77 @@ app = Flask(__name__)
 app.config['DEBUG'] = True
 
 
-mongo = MongoClient('mongodb://phyllisWong:test@ds139909.mlab.com:39909/trip_planner_pro')
+# mongo = MongoClient('mongodb://phyllisWong:test@ds139909.mlab.com:39909/trip_planner_pro')
+mongo = MongoClient('mongodb://localhost:27017/')
 app.db = mongo.trip_planner_pro
 app.bcrypt_rounds = 5
 
+def validate_auth(user, password):
+    users_collection = app.db.users
+    user = users_collection.find_one({'username': user})
+    # pdb.set_trace()
+    if user is None:
+        # pdb.set_trace()
+        return False
+    else:
+        pdb.set_trace()
+        encoded_password = password.encode('utf-8')
+        if bcrypt.hashpw(encoded_password, user['password']) == user['password']:
+            pdb.set_trace()
+            # g.setdefault('user', user)
+            return True
+        else:
+            return False
+
 # Authentication decorator
-def authentication_request(func):
-    # Set unlimited arguments to return back
+def authenticated_request(func):
     def wrapper(*args, **kwargs):
         auth = request.authorization
-        # Gets the headers in the Authorization JSON
-        auth_code = request.headers['authorization']
-        # import pdb; pdb.set_trace()
-        email, password = decode(auth_code)
-        if email is not None and password is not None:
-            users_collection = app.db.users
-            found_user = users_collection.find_one({'email': email})
-            if found_user is not None:
-                encoded_password = password.encode('utf-8')
-                if bcrypt.checkpw(encoded_password, found_user['password']):
-                    return func(*args, **kwargs)
-                else:
-                    return ({'error': 'email or password is not correct'}, 401, None)
-            else:
-                return ({'error': 'email or password is not correct'}, 401, None)
-        else:
-            return ({'error': 'could not find user in the database'})
+
+        if not auth or not validate_auth(auth.username, auth.password):
+            pdb.set_trace()
+            return ({'error': 'Basic Authorization Required'}, 401, None)
+
+        return func(*args, **kwargs)
+
     return wrapper
 
+
 class User(Resource):
-    def post(self): # This WORKS with Paw!!!
-        # Get data from the body of the http request
-        json = request.json
-        users_collection = app.db.users
 
-        #Getting password from client
-        password = json.get('password')
-        print(password)
+    def __init__(self):
+        self.users_collection = app.db.users
 
-        # save the value of the data in a variable
-        email = json["email"]
-        password = json["password"]
+    def post(self):
+        json_body = request.json
+        password = json_body['password']
+        email = json_body['email']
 
         # check if the user already exists in the database
-        check_for_user = users_collection.find_one({'email': email})
-
-        # if the email already exists in the database
-        # alert user that the email has been used
+        check_for_user = self.users_collection.find_one({'email': email})
         if check_for_user is not None:
-            return ('This email is already in use.', 401, None)
-
+            return ({'error': 'User already exists'}, 409, None)
         # if the email doesn't exist
-        # store email and encode and hash password to be saved in database
         else:
-            # Encrypting password by using a hash function and salt
             encoded_password = password.encode('utf-8')
+            hashed = bcrypt.hashpw(encoded_password, bcrypt.gensalt(app.bcrypt_rounds))
+            # hashed = hashed.decode()
+            pdb.set_trace()
 
-            # base64 encoding handled by the bcrypt library
-            hashed = bcrypt.hashpw(
-                encoded_password, bcrypt.gensalt(app.bcrypt_rounds)
-                )
-            password = hashed
-            print("This is the json " + str(json))
-            if 'username' in json and 'email' in json and 'password' in json:
-                # insert user and user details to database
-                user = users_collection.find_one({'email': email})
-                if user is not None:
-                    # User exists
-                    return ({'error': 'User already exists'}, 409, None)
-                users_collection.insert_one(json)
-                json.pop('password')
-                return ('New user has been added.', 200, None)
-            else:
-                return (None, 404, None)
+            json_body['password'] = hashed
 
+            result = self.users_collection.insert_one(json_body)
+            user = self.users_collection.find_one({"_id": result.inserted_id})
+            return ({'Success':'A new user was added'}, 200, None)
 
-    @authentication_request
+    @authenticated_request
     def get(self):
-        # import pdb pdb.set_trace()
-        # Get route to database
-        users_collection = app.db.users
-        auth = request.authorization
-        # print("Current password:" + user_password)
-        encoded_password = user_password.encode('utf-8')
-        if auth.email is not None and auth.password is not None:
-            user_find = users_collection.find_one({'email': auth.email})
-            user_find.pop('password')
-            return(user_find, 200, None)
-        else:
-            return(None, 401, None)
+        # user = g.get('user', None)
+        # user.pop('password')
+        username = request.authorization.username
+        user = self.users_collection.find_one({'username': username})
         # pdb.set_trace()
+        return ({'Success':'A user was found'}, 200, None)
 
     def put(self):
         edit_user = request.json
