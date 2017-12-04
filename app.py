@@ -19,8 +19,11 @@ app = Flask(__name__)
 app.config['DEBUG'] = True
 
 
-# mongo = MongoClient('mongodb://phyllisWong:test@ds139909.mlab.com:39909/trip_planner_pro')
-mongo = MongoClient('mongodb://localhost:27017/')
+# Deployed database
+mongo = MongoClient('mongodb://phyllisWong:test@ds139909.mlab.com:39909/trip_planner_pro')
+
+# Local database
+# mongo = MongoClient('mongodb://localhost:27017/')
 app.db = mongo.trip_planner_pro
 app.bcrypt_rounds = 5
 
