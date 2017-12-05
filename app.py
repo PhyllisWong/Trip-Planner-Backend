@@ -20,11 +20,11 @@ app.config['DEBUG'] = True
 
 
 # Deployed database
-mongo = MongoClient('mongodb://phyllistest:testing1@ds123722.mlab.com:23722/trip-planner-phyllis')
+mongo = MongoClient('mongodb://phyllis:test@ds123722.mlab.com:23722/trip_planner_phyllis')
 
 # Local database
 # mongo = MongoClient('mongodb://localhost:27017/')
-app.db = mongo.trip_planner_pro
+app.db = mongo.trip_planner_phyllis
 app.bcrypt_rounds = 5
 
 def validate_auth(user, password):
