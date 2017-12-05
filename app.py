@@ -132,18 +132,17 @@ class Trip(Resource):
         '''Create a new trip, store in the database.'''
         json_body = request.json
         # pass in the user_id
+        # pdb.set_trace()
         json_body['user_id'] = g.get('user')['_id']
-
         destination = json_body['destination']
 
+        # This block of code isn't working yet!!!!
         check_for_trip = self.trips_collection.find_one({'destination': destination})
-        if check_for_trip is not None:
-            return ({'error': 'Trip already exists'}, 409, None)
-
-        # pdb.set_trace()
+        if check_for_trip['destination']:
+            return (None, 409, None)
         trip = self.trips_collection.insert_one(json_body)
-        return ({'a new trip was added': "{}".format(trip)}, 200, None)
-        # return ({'a new trip was added': trip}, 200, None)
+        pdb.set_trace()
+        return ('a new trip was added', 200, None)
 
     @authenticated_request
     def get(self):
@@ -155,20 +154,9 @@ class Trip(Resource):
         all_trips = []
         if trips is not None:
             for trip in trips:
-                all_trips.append(trip)
+                all_trips += [trip]
 
         return (all_trips, 200, None)
-
-
-            # return ("BAD REQUEST", 404, None)
-        # pdb.set_trace()
-
-        # username = request.authorization.username
-        # user = self.users_collection.find_one({'username': username})
-        # if user is not None:
-        #     # pdb.set_trace()
-        #     return ({'Success':'{}'.format(user)}, 200, None)
-        # return ({'error': 'User does not exists'}, 404, None)
 
     def put(self):
         '''Replace a trip with a new trip.'''
@@ -198,6 +186,8 @@ api.add_resource(Trip, '/trips')
 @api.representation('application/json')
 def output_json(data, code, headers=None):
     '''Serialize output JSON data.'''
+
+    pdb.set_trace()
     if type(data) is dict:
         if data['password']:
             data['password'] = data['password'].decode('utf-8')
