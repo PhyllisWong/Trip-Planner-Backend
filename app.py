@@ -3,7 +3,7 @@ from flask_restful import Resource, Api
 from flask_pymongo import PyMongo
 from pymongo import MongoClient
 from basicauth import decode # does not work yet!!!!
-from bson.objectid import ObjectId
+from bson import binary, Code
 from bson.json_util import dumps
 from bson import BSON
 from util import JSONEncoder
@@ -20,10 +20,10 @@ app.config['DEBUG'] = True
 
 
 # Deployed database
-# mongo = MongoClient('mongodb://phyllisWong:test@ds139909.mlab.com:39909/trip_planner_pro')
+mongo = MongoClient('mongodb://phyllistest:testing1@ds123722.mlab.com:23722/trip-planner-phyllis')
 
 # Local database
-mongo = MongoClient('mongodb://localhost:27017/')
+# mongo = MongoClient('mongodb://localhost:27017/')
 app.db = mongo.trip_planner_pro
 app.bcrypt_rounds = 5
 
@@ -37,12 +37,9 @@ def validate_auth(user, password):
     else:
         # pdb.set_trace()
         encoded_password = password.encode('utf-8')
-        if bcrypt.hashpw(encoded_password, user['password']) == user['password']:
+        return bcrypt.checkpw(encoded_password, user['password']):
             # pdb.set_trace()
             # g.setdefault('user', user)
-            return True
-        else:
-            return False
 
 # Authentication decorator
 def authenticated_request(func):
@@ -87,27 +84,24 @@ class User(Resource):
 
     @authenticated_request
     def get(self):
-        # user = g.get('user', None)
-        # user.pop('password')
         username = request.authorization.username
         user = self.users_collection.find_one({'username': username})
-        # pdb.set_trace()
-        return ({'Success':'A user was found'}, 200, None)
+        if user is not None:
+            # pdb.set_trace()
+            return ({'Success':'{}'.format(user)}, 200, None)
+        return ({'error': 'User does not exists'}, 404, None)
 
-    @authenticated_request
+    @authenticated_request # Does not work yet
     def put(self):
         username = request.authorization.username
-        json_body = request.json
-        password = json_body['password']
-        email = json_body['email']
+        new_user = request.json
 
-        check_for_user = self.users_collection.find_one({'email': email})
-        if check_for_user is not None:
-            check_for_user.find_one_and_replace(
-                {'email': email}, email)
-            return ({'success': 'user has been replaced'}, 200, None)
-        else:
-            return ({'error': 'BAD REQUEST'}, 404, None)
+        user = self.users_collection.find_one_and_update(
+            {'user': username},
+            {'$set': {'user': new_user} },
+            return_document=ReturnDocument.AFTER
+        )
+        return ({'succesful': 'user has been updated'}, 200, None)
 
     @authenticated_request
     def patch(self):
