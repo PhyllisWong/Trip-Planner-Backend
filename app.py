@@ -134,18 +134,16 @@ class Trip(Resource):
         # pass in the user_id
         json_body['user_id'] = g.get('user')['_id']
 
-        trips_collection = app.db.trips
-
         destination = json_body['destination']
-        waypoints = json_body['waypoints']
-        completed = json_body['completed']
 
         check_for_trip = self.trips_collection.find_one({'destination': destination})
         if check_for_trip is not None:
             return ({'error': 'Trip already exists'}, 409, None)
-        trip = trips_collection.insert_one(json_body)
+
         # pdb.set_trace()
-        return ({'a new trip was added': trip}, 200, None)
+        trip = self.trips_collection.insert_one(json_body)
+        return ({'a new trip was added': "{}".format(trip)}, 200, None)
+        # return ({'a new trip was added': trip}, 200, None)
 
     @authenticated_request
     def get(self):
@@ -157,7 +155,7 @@ class Trip(Resource):
         all_trips = []
         if trips is not None:
             for trip in trips:
-                all_trips += [trip]
+                all_trips.append(trip)
 
         return (all_trips, 200, None)
 
