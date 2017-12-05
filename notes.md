@@ -42,3 +42,13 @@ Authentication Tokens
 
 Wrap auth methods in a method - called decorator
 before a user can get their account - they have to hash the password
+
+
+### Deployment
+1. Create an account on mlab
+1. Create a user on mlab
+1. On Mongodb Compass enter the port copied from the mlab page
+1. Enter the Hostname
+1. enter the port
+1. Authentication username / password Add the user and password
+1. Authentication Database is the name of the database

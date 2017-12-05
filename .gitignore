@@ -1,0 +1,7 @@
+
+development/
+.DS_Store
+app4.py
+notes.md
+__pycache__/
+.cache/
