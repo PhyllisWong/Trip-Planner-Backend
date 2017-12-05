@@ -81,7 +81,8 @@ class User(Resource):
 
             result = self.users_collection.insert_one(json_body)
             user = self.users_collection.find_one({"_id": result.inserted_id})
-            return ({'new user added': '{}'.format(user)}, 200, None)
+            user.pop('password')
+            return ({'new user added': user}, 200, None)
 
     @authenticated_request
     def get(self):
@@ -89,6 +90,7 @@ class User(Resource):
         user = self.users_collection.find_one({'username': username})
         if user is not None:
             # pdb.set_trace()
+            user.pop('password')
             return (user, 200, None)
         return ({'error': 'User does not exists'}, 404, None)
 
@@ -102,6 +104,7 @@ class User(Resource):
             {'$set': {'user': new_user} },
             return_document=ReturnDocument.AFTER
         )
+        user.pop('password')
         return ({'user was updated': '{}'.format(user)}, 200, None)
 
     @authenticated_request
@@ -114,6 +117,7 @@ class User(Resource):
             {'$set': {'user': new_user} },
             return_document=ReturnDocument.AFTER
         )
+        user.pop('password')
         return ({'succesful': 'user has been updated'}, 200, None)
 
     @authenticated_request
@@ -131,17 +135,14 @@ class Trip(Resource):
     def post(self):
         '''Create a new trip, store in the database.'''
         json_body = request.json
-        # pass in the user_id
-        # pdb.set_trace()
+
         json_body['user_id'] = g.get('user')['_id']
         destination = json_body['destination']
 
-        # This block of code isn't working yet!!!!
         check_for_trip = self.trips_collection.find_one({'destination': destination})
-        if check_for_trip['destination']:
+        if check_for_trip:
             return (None, 409, None)
         trip = self.trips_collection.insert_one(json_body)
-        pdb.set_trace()
         return ('a new trip was added', 200, None)
 
     @authenticated_request
@@ -149,14 +150,8 @@ class Trip(Resource):
         '''Return all trips from the database.'''
         # pdb.set_trace()
         user = g.get('user')['_id']
-
-        trips = self.trips_collection.find_one({'user_id': user})
-        all_trips = []
-        if trips is not None:
-            for trip in trips:
-                all_trips += [trip]
-
-        return (all_trips, 200, None)
+        trips = list(self.trips_collection.find({'user_id': user}))
+        return (trips, 200, None)
 
     def put(self):
         '''Replace a trip with a new trip.'''
@@ -175,8 +170,12 @@ class Trip(Resource):
         '''Replace a detail of a trip.'''
         pass
 
-    ''' add get request to find trip '''
-    ''' add data model for trips  '''
+    def delete(self):
+        '''Delete a trip from the database.'''
+        trip = request.json
+        destination = trip['destination']
+        self.trips_collection.remove({'trip': destination})
+        return ({'success': 'trip had been deleted'}, 200, None)
 
 
 api = Api(app)
@@ -186,11 +185,6 @@ api.add_resource(Trip, '/trips')
 @api.representation('application/json')
 def output_json(data, code, headers=None):
     '''Serialize output JSON data.'''
-
-    pdb.set_trace()
-    if type(data) is dict:
-        if data['password']:
-            data['password'] = data['password'].decode('utf-8')
     resp = make_response(JSONEncoder().encode(data), code)
     resp.headers.extend(headers or {})
     return resp
