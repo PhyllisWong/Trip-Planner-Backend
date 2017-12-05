@@ -174,8 +174,11 @@ class Trip(Resource):
         '''Delete a trip from the database.'''
         trip = request.json
         destination = trip['destination']
-        self.trips_collection.remove({'trip': destination})
-        return ({'success': 'trip had been deleted'}, 200, None)
+        check_for_trip = self.trips_collection.find_one({'destination': destination})
+        if check_for_trip:
+            self.trips_collection.remove({'destination': destination})
+            return ({'success': 'trip had been deleted'}, 200, None)
+        return ({'error': 'no trip found'}, 404, None)
 
 
 api = Api(app)
