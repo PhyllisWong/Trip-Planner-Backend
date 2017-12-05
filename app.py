@@ -37,9 +37,10 @@ def validate_auth(user, password):
     else:
         # pdb.set_trace()
         encoded_password = password.encode('utf-8')
+        g.setdefault('user', user)
         return bcrypt.checkpw(encoded_password, user['password'])
             # pdb.set_trace()
-            # g.setdefault('user', user)
+
 
 # Authentication decorator
 def authenticated_request(func):
@@ -80,7 +81,7 @@ class User(Resource):
 
             result = self.users_collection.insert_one(json_body)
             user = self.users_collection.find_one({"_id": result.inserted_id})
-            return ({'Success':'A new user was added'}, 200, None)
+            return ({'new user added': '{}'.format(user)}, 200, None)
 
     @authenticated_request
     def get(self):
@@ -88,7 +89,7 @@ class User(Resource):
         user = self.users_collection.find_one({'username': username})
         if user is not None:
             # pdb.set_trace()
-            return ({'Success':'{}'.format(user)}, 200, None)
+            return ({'user found':'{}'.format(user)}, 200, None)
         return ({'error': 'User does not exists'}, 404, None)
 
     @authenticated_request # Does not work yet
@@ -101,7 +102,7 @@ class User(Resource):
             {'$set': {'user': new_user} },
             return_document=ReturnDocument.AFTER
         )
-        return ({'succesful': 'user has been updated'}, 200, None)
+        return ({'user was updated': '{}'.format(user)}, 200, None)
 
     @authenticated_request
     def patch(self):
@@ -122,27 +123,54 @@ class User(Resource):
         return ({'success': 'user had been deleted'}, 200, None)
 
 class Trip(Resource):
+
+    def __init__(self):
+        self.trips_collection = app.db.trips
+
+    @authenticated_request
     def post(self):
         '''Create a new trip, store in the database.'''
-        a_trip = request.json
-        trips_collection = app.db.trips
-        result = trips_collection.insert_one(a_trip)
-        # pdb.set_trace()
-        return (a_trip, 200, None)
+        json_body = request.json
+        json_body['user_id'] = g.get('user')['_id']
 
+        trips_collection = app.db.trips
+
+        destination = json_body['destination']
+        completed = json_body['completed']
+
+        check_for_trip = self.trips_collection.find_one({'destination': destination})
+        if check_for_trip is not None:
+            return ({'error': 'Trip already exists'}, 409, None)
+        result = trips_collection.insert_one(json_body)
+        # pdb.set_trace()
+        return ({'success': 'a new trip was added'}, 200, None)
+
+    @authenticated_request
     def get(self):
         '''Return a trip from the database.'''
-        pdb.set_trace()
-        trips_collection = app.db.trips
-        destination = request.args.get('destination')
-
-        if request.args.get('destination'):
-            trip = trips_collection.find_one({'destination': destination})
-
-            return (trip, 200, None)
-        else:
-            return ({"BAD REQUEST"}, 404, None)
         # pdb.set_trace()
+        trips_collection = app.db.trips
+        user = g.get('user')['_id']
+
+
+        trips = trips_collection.find_one({'user_id': user})
+        all_trips = []
+        if trips is not None:
+            for trip in trips:
+                all_trips += [trip]
+
+        return (all_trips, 200, None)
+
+
+            # return ("BAD REQUEST", 404, None)
+        # pdb.set_trace()
+
+        # username = request.authorization.username
+        # user = self.users_collection.find_one({'username': username})
+        # if user is not None:
+        #     # pdb.set_trace()
+        #     return ({'Success':'{}'.format(user)}, 200, None)
+        # return ({'error': 'User does not exists'}, 404, None)
 
     def put(self):
         '''Replace a trip with a new trip.'''
