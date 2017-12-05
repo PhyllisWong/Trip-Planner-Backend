@@ -37,7 +37,7 @@ def validate_auth(user, password):
     else:
         # pdb.set_trace()
         encoded_password = password.encode('utf-8')
-        return bcrypt.checkpw(encoded_password, user['password']):
+        return bcrypt.checkpw(encoded_password, user['password'])
             # pdb.set_trace()
             # g.setdefault('user', user)
 
