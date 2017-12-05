@@ -3,7 +3,7 @@ from flask_restful import Resource, Api
 from flask_pymongo import PyMongo
 from pymongo import MongoClient
 from basicauth import decode # does not work yet!!!!
-from bson import binary, Code
+from bson import Binary, Code
 from bson.json_util import dumps
 from bson import BSON
 from util import JSONEncoder
@@ -37,6 +37,7 @@ def validate_auth(user, password):
     else:
         # pdb.set_trace()
         encoded_password = password.encode('utf-8')
+        # g is user variable with a {:}
         g.setdefault('user', user)
         return bcrypt.checkpw(encoded_password, user['password'])
             # pdb.set_trace()
@@ -50,7 +51,6 @@ def authenticated_request(func):
         if not auth or not validate_auth(auth.username, auth.password):
             # pdb.set_trace()
             return ({'error': 'Basic Authorization Required'}, 401, None)
-
         return func(*args, **kwargs)
 
     return wrapper
@@ -89,7 +89,7 @@ class User(Resource):
         user = self.users_collection.find_one({'username': username})
         if user is not None:
             # pdb.set_trace()
-            return ({'user found':'{}'.format(user)}, 200, None)
+            return (user, 200, None)
         return ({'error': 'User does not exists'}, 404, None)
 
     @authenticated_request # Does not work yet
@@ -131,29 +131,29 @@ class Trip(Resource):
     def post(self):
         '''Create a new trip, store in the database.'''
         json_body = request.json
+        # pass in the user_id
         json_body['user_id'] = g.get('user')['_id']
 
         trips_collection = app.db.trips
 
         destination = json_body['destination']
+        waypoints = json_body['waypoints']
         completed = json_body['completed']
 
         check_for_trip = self.trips_collection.find_one({'destination': destination})
         if check_for_trip is not None:
             return ({'error': 'Trip already exists'}, 409, None)
-        result = trips_collection.insert_one(json_body)
+        trip = trips_collection.insert_one(json_body)
         # pdb.set_trace()
-        return ({'success': 'a new trip was added'}, 200, None)
+        return ({'a new trip was added': trip}, 200, None)
 
     @authenticated_request
     def get(self):
-        '''Return a trip from the database.'''
+        '''Return all trips from the database.'''
         # pdb.set_trace()
-        trips_collection = app.db.trips
         user = g.get('user')['_id']
 
-
-        trips = trips_collection.find_one({'user_id': user})
+        trips = self.trips_collection.find_one({'user_id': user})
         all_trips = []
         if trips is not None:
             for trip in trips:
@@ -199,6 +199,10 @@ api.add_resource(Trip, '/trips')
 
 @api.representation('application/json')
 def output_json(data, code, headers=None):
+    '''Serialize output JSON data.'''
+    if type(data) is dict:
+        if data['password']:
+            data['password'] = data['password'].decode('utf-8')
     resp = make_response(JSONEncoder().encode(data), code)
     resp.headers.extend(headers or {})
     return resp
