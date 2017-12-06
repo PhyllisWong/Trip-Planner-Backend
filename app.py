@@ -168,6 +168,7 @@ class Trip(Resource):
 
     def patch(self):
         '''Replace a detail of a trip.'''
+        a_trip = request.json
         pass
 
     def delete(self):
