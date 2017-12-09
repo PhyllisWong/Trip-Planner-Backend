@@ -20,10 +20,10 @@ app.config['DEBUG'] = True
 
 
 # Deployed database
-mongo = MongoClient('mongodb://phyllis:test@ds123722.mlab.com:23722/trip_planner_phyllis')
+# mongo = MongoClient('mongodb://phyllis:test@ds123722.mlab.com:23722/trip_planner_phyllis')
 
 # Local database
-# mongo = MongoClient('mongodb://localhost:27017/')
+mongo = MongoClient('mongodb://localhost:27017/')
 app.db = mongo.trip_planner_phyllis
 app.bcrypt_rounds = 5
 
