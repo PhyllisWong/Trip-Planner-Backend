@@ -7,7 +7,6 @@ from bson import Binary, Code
 from bson.json_util import dumps
 from bson import BSON
 from util import JSONEncoder
-import pdb
 import json
 import sys
 
@@ -153,6 +152,7 @@ class Trip(Resource):
         trips = list(self.trips_collection.find({'user_id': user}))
         return (trips, 200, None)
 
+    @authenticated_request
     def put(self):
         '''Replace a trip with a new trip.'''
         a_trip = request.json
@@ -166,15 +166,18 @@ class Trip(Resource):
             return ({"BAD REQUEST"}, 404, None)
         pass
 
+    @authenticated_request
     def patch(self):
         '''Replace a detail of a trip.'''
         a_trip = request.json
         pass
 
+    @authenticated_request
     def delete(self):
         '''Delete a trip from the database.'''
-        trip = request.json
-        destination = trip['destination']
+
+        destination = request.args.get('destination')
+        # import pdb; pdb.set_trace()
         check_for_trip = self.trips_collection.find_one({'destination': destination})
         if check_for_trip:
             self.trips_collection.remove({'destination': destination})
